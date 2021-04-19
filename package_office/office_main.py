@@ -39,8 +39,7 @@ def create_new_dir(path, path_new):
         elif True == is_file(path_new):
             os.remove(path_new)
         else:
-            logger.error("path_new:" + path_new + " unknow type")
-            return
+            logger.info("create path_new:" + path_new)
     except:
         logger.error(" repr(e):", repr(e))
     shutil.copytree(path, path_new)
@@ -67,6 +66,7 @@ def generate_tree(path, n=0):
     pathname = Path(path)
     global tree_str
     global path_tree_str
+    next_dir = []
     if pathname.is_file():
         tree_str += '    |' * n + '-' * 4 + pathname.name + '\n'
         path_tree_str += str(pathname.parent.joinpath(pathname.name)) + '\n'
@@ -77,7 +77,13 @@ def generate_tree(path, n=0):
         logger.info("##目录:" + str(pathname.parent.joinpath(pathname.name)))
         path_tree_str += ('##目录:' + str(pathname.parent.joinpath(pathname.name)) + '\n')
         for cp in pathname.iterdir():
-            generate_tree(cp, n + 1)
+            str_cp = str(cp)
+            if cp.is_file():
+                generate_tree(str_cp, n + 1)
+            elif cp.is_dir():
+                next_dir.append(str_cp)
+        for cp1 in next_dir:
+            generate_tree(cp1, n + 1)
 
 def dir_show(path):
     generate_tree(path)
