@@ -6,7 +6,6 @@ import logging
 import shutil
 import os.path
 import sys
-import walk
 from pathlib import Path
 from package_office.txt_oper import do_txt
 from package_office.doc_oper import do_doc
