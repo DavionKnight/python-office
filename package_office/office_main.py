@@ -62,26 +62,30 @@ def save_file(tree, filename='tree.txt'):
 
 tree_str = ''
 path_tree_str = ''
+customized_tree_str = ''
 def generate_tree(path, n=0):
     pathname = Path(path)
     global tree_str
     global path_tree_str
+    global customized_tree_str
     next_dir = []
     if pathname.is_file():
         tree_str += '    |' * n + '-' * 4 + pathname.name + '\n'
-        path_tree_str += str(pathname.parent.joinpath(pathname.name)) + '\n'
+        path_tree_str += str(pathname.name) + '\n'
         logger.info(str(pathname.parent.joinpath(pathname.name)))
     elif pathname.is_dir():
         tree_str += '    |' * n + '-' * 4 + \
             str(pathname.relative_to(pathname.parent)) + '\\' + '\n'
-        logger.info("##目录:" + str(pathname.parent.joinpath(pathname.name)))
-        path_tree_str += ('##目录:' + str(pathname.parent.joinpath(pathname.name)) + '\n')
+        logger.info("目录:" + str(pathname.parent.joinpath(pathname.name)))
+        path_tree_str += ('\n目录:' + str(pathname.parent.joinpath(pathname.name)) + '\n')
+        customized_tree_str += (str(pathname.parent.joinpath(pathname.name)) + '\n')
         for cp in pathname.iterdir():
             str_cp = str(cp)
             if cp.is_file():
                 generate_tree(str_cp, n + 1)
             elif cp.is_dir():
                 next_dir.append(str_cp)
+        next_dir.sort()
         for cp1 in next_dir:
             generate_tree(cp1, n + 1)
 
@@ -90,6 +94,7 @@ def dir_show(path):
     logger.debug(tree_str)
     save_file(tree_str)
     save_file(path_tree_str, 'path_tree_str.txt')
+    save_file(customized_tree_str, 'customized_tree_str.txt')
     for root,dirs,files in os.walk(path, topdown=False):
         dirs.sort()
         for dir in dirs:

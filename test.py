@@ -27,7 +27,7 @@ replace_dict2 = {
         docx_ori1:docx_dest1
 }
 
-dir_path = "./aa/"
+dir_path = "./test/"
 
 def def_log_module():
     logger = logging.getLogger("mainModule")
