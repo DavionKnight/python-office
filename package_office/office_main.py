@@ -71,11 +71,11 @@ def generate_tree(path, n=0):
     if pathname.is_file():
         tree_str += '    |' * n + '-' * 4 + pathname.name + '\n'
         path_tree_str += str(pathname.name) + '\n'
-        logger.info(str(pathname.parent.joinpath(pathname.name)))
+        logger.debug(str(pathname.parent.joinpath(pathname.name)))
     elif pathname.is_dir():
         tree_str += '    |' * n + '-' * 4 + \
             str(pathname.relative_to(pathname.parent)) + '\\' + '\n'
-        logger.info("目录:" + str(pathname.parent.joinpath(pathname.name)))
+        logger.debug("目录:" + str(pathname.parent.joinpath(pathname.name)))
         path_tree_str += ('\n目录:' + str(pathname.parent.joinpath(pathname.name)) + '\n')
         customized_tree_str += (str(pathname.parent.joinpath(pathname.name)) + '\n')
         for cp in pathname.iterdir():
@@ -90,7 +90,7 @@ def generate_tree(path, n=0):
 
 def dir_show(path):
     generate_tree(path)
-    logger.debug(tree_str)
+    logger.info('目录树：\n' + tree_str)
     save_file(tree_str)
     save_file(path_tree_str, 'path_tree_str.txt')
     save_file(customized_tree_str, 'customized_tree_str.txt')
@@ -102,28 +102,28 @@ def dir_show(path):
             logger.debug(os.path.join(root,file).encode('utf-8').decode('gbk'))
 
 def dir_opt(path, replace_dict):
-    logger.info("DIR:" + path)
+    logger.debug("DIR:" + path)
     dir_show(path)
     path_new = os.path.dirname(path) + os.path.basename(path) + "_new"
     create_new_dir(path, path_new)
+    global input_is_dir
     input_is_dir = True
     dir_traversal_opt(path_new, replace_dict)
-    logger.info(path_new + " has interatored done!")
 
 def gen_newpath(path):
+    global input_is_dir
     if True == input_is_dir:
         name = path
     else:
         name = get_file_prefix(path)
         name = name + "_new"
         name = name + get_file_suffix(path)
-    logger.info("new file is:" + name)
     return name
 
 def file_opt(path, replace_dict):
-    logger.debug(path + " is file")
     fsuffix = get_file_suffix(path)
     new_name = gen_newpath(path)
+    logger.info("File is:" + new_name)
     if txt == fsuffix:
         do_txt(path, new_name, replace_dict)
     elif doc == fsuffix:
@@ -132,14 +132,14 @@ def file_opt(path, replace_dict):
         do_docx(path, new_name, replace_dict)
     else:
         logger.error("ERROR:file suffix can not recongnized! suffix get is:" + fsuffix)
+    logger.info(new_name + ' replace done!\n')
 
 def office_main(input_path, replace_dict):
     if True == is_dir(input_path):
-#        input_is_dir = True
         dir_opt(input_path, replace_dict)
     elif True == is_file(input_path):
-#        input_is_dir = False
         file_opt(input_path, replace_dict)
     else:
         logger.error ("file name error!")
+    logger.info(input_path + " has interatored done!")
 

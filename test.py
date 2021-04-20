@@ -5,7 +5,8 @@ import os
 import logging
 from package_office.office_main import office_main
 
-loglevel = logging.DEBUG
+Release_ver = True
+#Release_ver = False
 
 text_path = "./aa/bb.txt"
 text_ori = "一城龙域"
@@ -30,11 +31,16 @@ replace_dict2 = {
 dir_path = "./test/"
 
 def def_log_module():
+    if True == Release_ver:
+        loglevel = logging.INFO
+        formatter = logging.Formatter('[%(asctime)s]:%(message)s')
+    else:
+        loglevel = logging.DEBUG
+        formatter = logging.Formatter('%(asctime)s-[%(filename)s:%(lineno)s]:%(message)s')
     logger = logging.getLogger("mainModule")
     logger.setLevel(level = loglevel)
     handler = logging.FileHandler("log.txt")
     handler.setLevel(loglevel)
-    formatter = logging.Formatter('%(asctime)s-[%(filename)s:%(lineno)s]%(levelname)s:%(message)s')
     handler.setFormatter(formatter)
 
     console = logging.StreamHandler()
@@ -44,7 +50,7 @@ def def_log_module():
     logger.addHandler(handler)
     logger.addHandler(console)
 
-    logger.info("Start print log")
+    logger.info("Applicant Start...")
 
 
 if __name__ == '__main__':

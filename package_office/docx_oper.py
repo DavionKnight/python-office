@@ -111,6 +111,6 @@ def do_docx(old_path, new_path, replace_dict):
         logger.info("--->Warnning! " + old_path + " has checked same words:%d" % count_logical + " but replaced count:%d" % count_real)
 
     fdocx.save(new_path)
-    logger.info("--->replace done, new file " + new_path)
+    logger.debug("--->replace done, new file " + new_path)
 
 
