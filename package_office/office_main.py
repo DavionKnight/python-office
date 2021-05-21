@@ -37,17 +37,10 @@ def create_new_dir(path, path_new):
             shutil.rmtree(path_new)
         elif True == is_file(path_new):
             os.remove(path_new)
-        else:
-            logger.info("create path_new:" + path_new)
     except:
         logger.error(" repr(e):", repr(e))
     shutil.copytree(path, path_new)
-
-def dir_traversal_opt(path, replace_dict):
-    for fname in os.listdir(path):
-        logger.debug("list:" + fname)
-        fname_new = os.path.join(path, fname)
-        file_opt(fname_new, replace_dict)
+    logger.info("Input is dir, copy " + path + " to " + path_new + " done!")
 
 def find_file(arg,dirname,files):
     for file in files:
@@ -62,16 +55,19 @@ def save_file(tree, filename='tree.txt'):
 tree_str = ''
 path_tree_str = ''
 customized_tree_str = ''
+file_list = []
 def generate_tree(path, n=0):
     pathname = Path(path)
     global tree_str
     global path_tree_str
     global customized_tree_str
+    global file_list
     next_dir = []
     if pathname.is_file():
         tree_str += '    |' * n + '-' * 4 + pathname.name + '\n'
         path_tree_str += str(pathname.name) + '\n'
         logger.debug(str(pathname.parent.joinpath(pathname.name)))
+        file_list.append(str(pathname.parent.joinpath(pathname.name)))
     elif pathname.is_dir():
         tree_str += '    |' * n + '-' * 4 + \
             str(pathname.relative_to(pathname.parent)) + '\\' + '\n'
@@ -88,26 +84,37 @@ def generate_tree(path, n=0):
         for cp1 in next_dir:
             generate_tree(cp1, n + 1)
 
-def dir_show(path):
+def dir_tree_generate(path):
     generate_tree(path)
-    logger.info('目录树：\n' + tree_str)
+    logger.info('\n目录树：\n' + tree_str)
+    logger.info('\n目录树：\n' + path_tree_str)
     save_file(tree_str)
     save_file(path_tree_str, 'path_tree_str.txt')
     save_file(customized_tree_str, 'customized_tree_str.txt')
-    for root,dirs,files in os.walk(path, topdown=False):
-        dirs.sort()
-        for dir in dirs:
-            logger.debug("##目录:" + os.path.join(root,dir).encode('utf-8').decode('gbk'))
-        for file in files:
-            logger.debug(os.path.join(root,file).encode('utf-8').decode('gbk'))
+#    for root,dirs,files in os.walk(path, topdown=False):
+#        dirs.sort()
+#        for dir in dirs:
+#            logger.debug("##目录:" + os.path.join(root,dir).encode('utf-8').decode('gbk'))
+#        for file in files:
+#            logger.debug(os.path.join(root,file).encode('utf-8').decode('gbk'))
+
+def dir_traversal_opt(path, replace_dict):
+    global file_list
+    for fname in file_list:
+        logger.debug("list:" + fname)
+        file_opt(fname, replace_dict)
 
 def dir_opt(path, replace_dict):
     logger.debug("DIR:" + path)
-    dir_show(path)
-    path_new = os.path.dirname(path) + os.path.basename(path) + "_new"
-    create_new_dir(path, path_new)
+
     global input_is_dir
     input_is_dir = True
+
+    path_new = os.path.dirname(path) + os.path.basename(path) + "_new"
+    create_new_dir(path, path_new)
+
+    dir_tree_generate(path_new)
+
     dir_traversal_opt(path_new, replace_dict)
 
 def gen_newpath(path):

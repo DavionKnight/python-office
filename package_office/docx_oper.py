@@ -28,6 +28,26 @@ def check_all_match_count(fdocx, replace_dict):
         count += check_parag_match_count(para, replace_dict)
     return count
 
+def do_tables_replace(fdocx, replace_dict):
+    if 0 == len(fdocx.tables):
+        logger.info('no tables found')
+        return
+    cell_set = set()
+    for i in range(len(fdocx.tables)):
+        logger.info(f'First table:{len(fdocx.tables[i].rows)} row X {len(fdocx.tables[i].columns)} columns')
+        cell_set.clear()
+        for j in range(len(fdocx.tables[i].rows)):
+            logger.info(f'row {j+1} has {len(fdocx.tables[i].columns)} columns')
+            for k in range(len(fdocx.tables[i].columns)):
+                cell = fdocx.tables[i].cell(j, k)
+                if cell not in cell_set:
+                    cell_set.add(cell)
+                    logger.info('cell.text' + cell.text)
+                    logger.info('cell.text.front' + str(cell.paragraphs))
+                    for key, value in replace_dict.items():
+                        if key in cell.text:
+                            cell.text = cell.text + value
+
 def do_re_replace(para, replace_dict):
     replace_count = 0
     for key, value in replace_dict.items():
@@ -95,6 +115,7 @@ def do_replace(fdocx, replace_dict):
             if para_match_count != parag_replace_count:
                 parag_replace_count += do_re_replace(para, replace_dict)
             has_replace_count += parag_replace_count
+        do_tables_replace(fdocx, replace_dict)
     except Exception as e:
         logger.error("line:%d" % sys._getframe().f_lineno + " repr(e):", repr(e))
         return
