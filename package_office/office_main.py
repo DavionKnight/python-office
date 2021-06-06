@@ -18,10 +18,27 @@ doc = ".doc"
 docx = ".docx"
 input_is_dir = False
 
+def log_to_ui(to_ui, level, msg):
+    msg_level = ""
+    if "debug" == level:
+        msg_level = "[DEBUG]"
+        logger.debug(msg_level + msg)
+    elif "error" == level:
+        msg_level = "[ERROR]"
+        logger.error(msg_level + msg)
+    elif "info" == level:
+        msg_level = "[INFO]"
+        logger.info(msg_level + msg)
+    else:
+        logger.debug("[DEBUG]" + msg)
+    if True == to_ui:
+        from package_office.ui import ui_log_show
+        ui_log_show(msg_level + msg)
+
 def is_dir(path):
     return os.path.isdir(path)
 def is_file(path):
-    return os.path.isfile(path)
+        return os.path.isfile(path)
 
 def get_file_suffix(path):
     namelist = os.path.splitext(path)
@@ -34,13 +51,15 @@ def get_file_prefix(path):
 def create_new_dir(path, path_new):
     try:
         if True == is_dir(path_new):
+            log_to_ui(True, "info", "新目录存在，删除新目录!")
             shutil.rmtree(path_new)
         elif True == is_file(path_new):
             os.remove(path_new)
     except:
         logger.error(" repr(e):", repr(e))
     shutil.copytree(path, path_new)
-    logger.info("Input is dir, copy " + path + " to " + path_new + " done!")
+    log_to_ui(True, "info", "新目录重新生成完成!，新目录为：")
+    log_to_ui(True, "", path_new)
 
 def find_file(arg,dirname,files):
     for file in files:
@@ -64,10 +83,13 @@ def generate_tree(path, n=0):
     global file_list
     next_dir = []
     if pathname.is_file():
-        tree_str += '    |' * n + '-' * 4 + pathname.name + '\n'
-        path_tree_str += str(pathname.name) + '\n'
-        logger.debug(str(pathname.parent.joinpath(pathname.name)))
-        file_list.append(str(pathname.parent.joinpath(pathname.name)))
+        fname = os.path.basename(path)
+        #delete file fist char is ~
+        if '~' != fname[0]:
+            tree_str += '    |' * n + '-' * 4 + pathname.name + '\n'
+            path_tree_str += str(pathname.name) + '\n'
+            logger.debug(str(pathname.parent.joinpath(pathname.name)))
+            file_list.append(str(pathname.parent.joinpath(pathname.name)))
     elif pathname.is_dir():
         tree_str += '    |' * n + '-' * 4 + \
             str(pathname.relative_to(pathname.parent)) + '\\' + '\n'
@@ -85,12 +107,24 @@ def generate_tree(path, n=0):
             generate_tree(cp1, n + 1)
 
 def dir_tree_generate(path):
+    log_to_ui(True, "info", "目录树生成中...")
+    global tree_str
+    global path_tree_str
+    global customized_tree_str
+    global file_list
+    tree_str = ''
+    path_tree_str = ''
+    customized_tree_str = ''
+    file_list = []
     generate_tree(path)
     logger.info('\n目录树：\n' + tree_str)
     logger.info('\n目录树：\n' + path_tree_str)
+    from package_office.ui import ui_dir_tree_show
+    ui_dir_tree_show(tree_str)
     save_file(tree_str)
     save_file(path_tree_str, 'path_tree_str.txt')
     save_file(customized_tree_str, 'customized_tree_str.txt')
+    log_to_ui(True, "info", "目录树生成完成!")
 #    for root,dirs,files in os.walk(path, topdown=False):
 #        dirs.sort()
 #        for dir in dirs:
@@ -98,22 +132,35 @@ def dir_tree_generate(path):
 #        for file in files:
 #            logger.debug(os.path.join(root,file).encode('utf-8').decode('gbk'))
 
+def rename_file(path, replace_dict):
+    log_to_ui(True, "info", "文件重命名中...")
+    for parent,dirnames,filenames in os.walk(path):#三个参数：分别返回1.父目录 2.所有文件夹名字（不含路径） 3.所有文件名字
+        for filename in filenames:#文件名
+            for key, value in replace_dict.items():
+                if key in filename:
+                    nfn = filename.replace(key, value)
+                    os.rename(os.path.join(parent,filename),os.path.join(parent,nfn))#重命名
+                    log_to_ui(True, "info", "文件" + filename + "重命名为" + nfn)
+    log_to_ui(True, "info", "文件重命名完成。")
+
 def dir_traversal_opt(path, replace_dict):
     global file_list
     for fname in file_list:
-        logger.debug("list:" + fname)
         file_opt(fname, replace_dict)
 
 def dir_opt(path, replace_dict):
-    logger.debug("DIR:" + path)
+    log_to_ui(True, "info", "您要替换的目录为：")
+    log_to_ui(True, "", path)
 
     global input_is_dir
     input_is_dir = True
 
-    path_new = os.path.dirname(path) + os.path.basename(path) + "_new"
+    path_new = os.path.dirname(path) + "/" + os.path.basename(path) + "_new"
     create_new_dir(path, path_new)
 
-    dir_tree_generate(path_new)
+    rename_file(path_new, replace_dict)
+
+    dir_tree_generate(path_new, )
 
     dir_traversal_opt(path_new, replace_dict)
 
@@ -128,6 +175,14 @@ def gen_newpath(path):
     return name
 
 def file_opt(path, replace_dict):
+    log_to_ui(True, "", "")
+    log_to_ui(True, "info", "开始处理文件：" + path)
+
+    fname = os.path.basename(path)
+    if '~' == fname[0]:
+        logger.error("文件" + fsuffix + "不是文本文件，跳过!")
+        return False
+
     fsuffix = get_file_suffix(path)
     new_name = gen_newpath(path)
     logger.info("File is:" + new_name)
@@ -138,8 +193,9 @@ def file_opt(path, replace_dict):
     elif docx == fsuffix:
         do_docx(path, new_name, replace_dict)
     else:
-        logger.error("ERROR:file suffix can not recongnized! suffix get is:" + fsuffix)
-    logger.info(new_name + ' replace done!\n')
+        log_to_ui(True, "error", "文件" + path + "后缀不识别，跳过！")
+        return
+    log_to_ui(True, "info", "文件" + path + "处理完成！")
 
 def office_main(input_path, replace_dict):
     if True == is_dir(input_path):
@@ -147,6 +203,7 @@ def office_main(input_path, replace_dict):
     elif True == is_file(input_path):
         file_opt(input_path, replace_dict)
     else:
-        logger.error ("file name error!")
-    logger.info(input_path + " has interatored done!")
+        log_to_ui(True, "error", "file name error!")
+    log_to_ui(True, "", "")
+    log_to_ui(True, "info", "文件操作全部完成!")
 

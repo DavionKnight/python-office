@@ -13,6 +13,23 @@ replace_total = 0
 
 logger = logging.getLogger("mainModule")
 
+def log_to_ui(to_ui, level, msg):
+    msg_level = ""
+    if "debug" == level:
+        msg_level = "[DEBUG]"
+        logger.debug(msg_level + msg)
+    elif "error" == level:
+        msg_level = "[ERROR]"
+        logger.error(msg_level + msg)
+    elif "info" == level:
+        msg_level = "[INFO]"
+        logger.info(msg_level + msg)
+    else:
+        logger.debug("[DEBUG]" + msg)
+    if True == to_ui:
+        from package_office.ui import ui_log_show
+        ui_log_show(msg_level + msg)
+
 def check_parag_match_count(para, replace_dict):
     count = 0
     for key, value in replace_dict.items():
@@ -127,8 +144,10 @@ def do_docx(old_path, new_path, replace_dict):
     count_logical = check_all_match_count(fdocx, replace_dict)
     count_real = do_replace(fdocx, replace_dict)
     if count_logical == count_real:
-        logger.info("--->File " + old_path + " has checked same words count:%d" %count_logical)
+        log_to_ui(True, "info", "--->文件中检查到%d个，全部替换！"%count_logical)
+#        logger.info("--->File " + old_path + " has checked same words count:%d" %count_logical)
     else:
+        log_to_ui(True, "error", "--->文件中检查到%d"%count_logical + "个，但实际替换%d个"%count_real)
         logger.info("--->Warnning! " + old_path + " has checked same words:%d" % count_logical + " but replaced count:%d" % count_real)
 
     fdocx.save(new_path)
