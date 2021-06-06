@@ -140,14 +140,19 @@ def do_replace(fdocx, replace_dict):
 
 
 def do_docx(old_path, new_path, replace_dict):
+    count_logical = 0
+    count_real = 0
     fdocx = Document(old_path)
     count_logical = check_all_match_count(fdocx, replace_dict)
-    count_real = do_replace(fdocx, replace_dict)
+    if 0 < count_logical:
+        count_real = do_replace(fdocx, replace_dict)
     if count_logical == count_real:
-        log_to_ui(True, "info", "--->文件中检查到%d个，全部替换！"%count_logical)
-#        logger.info("--->File " + old_path + " has checked same words count:%d" %count_logical)
+        if 0 < count_logical:
+            log_to_ui(True, "info", "--->文件中检查到匹配项%d个，全部替换！"%count_logical)
+        else:
+            log_to_ui(True, "info", "--->文件中检查到匹配项%d个，跳过！"%count_logical)
     else:
-        log_to_ui(True, "error", "--->文件中检查到%d"%count_logical + "个，但实际替换%d个"%count_real)
+        log_to_ui(True, "error", "--->文件中检查到匹配项%d"%count_logical + "个，但实际替换%d个"%count_real)
         logger.info("--->Warnning! " + old_path + " has checked same words:%d" % count_logical + " but replaced count:%d" % count_real)
 
     fdocx.save(new_path)

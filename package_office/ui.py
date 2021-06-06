@@ -14,8 +14,8 @@ import time
 
 import matplotlib.pyplot as plt
 
-#Release_ver = True
-Release_ver = False
+Release_ver = True
+#Release_ver = False
 
 text_path = "./aa/bb.txt"
 text_ori = "一城龙域"
