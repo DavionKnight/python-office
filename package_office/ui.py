@@ -12,8 +12,6 @@ from tkinter.filedialog import askdirectory
 from tkinter import StringVar
 import time
 
-import matplotlib.pyplot as plt
-
 Release_ver = True
 #Release_ver = False
 

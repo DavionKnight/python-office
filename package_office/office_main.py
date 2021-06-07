@@ -195,7 +195,7 @@ def file_opt(path, replace_dict):
     else:
         log_to_ui(True, "error", "文件" + path + "后缀不识别，跳过！")
         return
-    log_to_ui(True, "info", "文件" + path + "处理完成！")
+    log_to_ui(True, "info", "处理完成！")
 
 def office_main(input_path, replace_dict):
     if True == is_dir(input_path):
