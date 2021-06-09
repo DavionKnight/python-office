@@ -4,6 +4,7 @@
 import os
 import logging
 import pythoncom
+import shutil
 from win32com import client as wc
 from package_office.docx_oper import do_docx
 
@@ -29,11 +30,19 @@ def log_to_ui(to_ui, level, msg):
 def do_doc(path, new_path, replace_dict):
     print ("do doc")
     pythoncom.CoInitialize()
-    w = wc.gencache.EnsureDispatch('kwps.application')
-    doc = w.Documents.Open(path)
-    new_filepath=new_path.split(".")[0]+".docx"
-    doc.SaveAs(new_filepath, 12, False, "", True, "", False, False, False,False)  # 转化后路径下的文件
-    doc.Close()
-    os.remove(path)
-    log_to_ui(True, "info", "文件" + new_path + "转换为" + new_filepath)
-    do_docx(new_filepath, new_filepath, replace_dict)
+    try:
+        w = wc.Dispatch('kwps.Application')
+    except:
+        w = wc.Dispatch('wps.Application')
+    finally:
+        doc = w.Documents.Open(path)
+        new_filepath = os.path.splitext(path)[0]+".docx"
+        doc.SaveAs(new_filepath, 12, False, "", True, "", False, False, False,False)  # 转化后路径下的文件
+        doc.Close()
+        w.Quit()
+#    shutil.rmtree(path)
+        print ("new_filepath" + new_filepath)
+        from package_office.office_main import delWithCmd
+        delWithCmd(path)
+        log_to_ui(True, "info", "文件" + new_path + "转换为" + new_filepath)
+        do_docx(new_filepath, new_filepath, replace_dict)

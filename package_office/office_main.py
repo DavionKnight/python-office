@@ -48,18 +48,54 @@ def get_file_prefix(path):
     namelist = os.path.splitext(path)
     return namelist[0]
 
+def delWithCmd(path):
+    try:
+        if os.path.isfile(path):
+            cmd = 'del "'+ path + '" /F'
+            print(cmd)
+            os.system(cmd)
+    except Exception as e:
+        print(e)
+
+dirsCnt = 0
+filesCnt = 0
+def deleteDir(dirPath):
+    global dirsCnt
+    global filesCnt
+    for root, dirs, files in os.walk(dirPath, topdown=False):
+        for name in files:
+            try:
+                filesCnt += 1
+                filePath = os.path.join(root, name)
+                print('file deleted', filesCnt, filePath)
+                os.remove(filePath)
+            except Exception as e:
+                print(e)
+                delWithCmd(filePath)
+        for name in dirs:
+            try:
+                os.rmdir(os.path.join(root, name))
+                dirsCnt += 1
+            except Exception as e:
+                print(e)
+    print("find file")
+    os.rmdir(dirPath)
+    print("delete end")
+
 def create_new_dir(path, path_new):
     try:
         if True == is_dir(path_new):
             log_to_ui(True, "info", "新目录存在，删除新目录!")
-            shutil.rmtree(path_new)
+            deleteDir(path_new)
         elif True == is_file(path_new):
-            os.remove(path_new)
+            delWithCmd(path_new)
     except:
-        logger.error(" repr(e):", repr(e))
+        log_to_ui(True, "info", "删除" + path_new + "失败，请关闭文件重试！")
+#        return False
     shutil.copytree(path, path_new)
     log_to_ui(True, "info", "新目录重新生成完成!，新目录为：")
     log_to_ui(True, "", path_new)
+    return True
 
 def find_file(arg,dirname,files):
     for file in files:
@@ -156,7 +192,8 @@ def dir_opt(path, replace_dict):
     input_is_dir = True
 
     path_new = os.path.dirname(path) + "/" + os.path.basename(path) + "_new"
-    create_new_dir(path, path_new)
+    if False == create_new_dir(path, path_new):
+        return False
 
     rename_file(path_new, replace_dict)
 
@@ -199,7 +236,8 @@ def file_opt(path, replace_dict):
 
 def office_main(input_path, replace_dict):
     if True == is_dir(input_path):
-        dir_opt(input_path, replace_dict)
+        if False == dir_opt(input_path, replace_dict):
+            return False
     elif True == is_file(input_path):
         file_opt(input_path, replace_dict)
     else:
