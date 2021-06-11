@@ -154,29 +154,11 @@ class MY_GUI():
         self.dir_tree_text.grid(row=8, column=0, rowspan=5, columnspan=3,sticky=W)
 
         Label(self.tk, text="日志:",fg="Black", bg="lightyellow").grid(row=0, column=4,sticky=W)
-        self.log_text = Text(self.tk, width=100, height=50)  #原始数据录入框
+        f=Frame(self.tk)
+        s1 = Scrollbar(f,orient=VERTICAL)
+        self.log_text = Text(self.tk, width=100, height=50, yscrollcommand=s1.set, wrap=NONE)  #原始数据录入框
         self.log_text.grid(row=1, column=4, rowspan=60, columnspan=60, sticky=N+W)
-
-    #功能函数
-    def str_trans_to_md5(self):
-        src = self.init_data_Text.get(1.0,END).strip().replace("\n","").encode()
-        #print("src =",src)
-        if src:
-            try:
-                myMd5 = hashlib.md5()
-                myMd5.update(src)
-                myMd5_Digest = myMd5.hexdigest()
-                #print(myMd5_Digest)
-                #输出到界面
-                self.result_data_Text.delete(1.0,END)
-                self.result_data_Text.insert(1.0,myMd5_Digest)
-                self.write_log_to_Text("INFO:str_trans_to_md5 success")
-            except:
-                self.result_data_Text.delete(1.0,END)
-                self.result_data_Text.insert(1.0,"字符串转MD5失败")
-        else:
-            self.write_log_to_Text("ERROR:str_trans_to_md5 failed")
-
+#        self.log_text.configure(state=DISABLED)
 
     #获取当前时间
     def get_current_time(self):

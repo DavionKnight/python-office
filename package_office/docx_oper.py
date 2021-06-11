@@ -43,12 +43,14 @@ def check_all_match_count(fdocx, replace_dict):
     count = 0
     for para in fdocx.paragraphs:
         count += check_parag_match_count(para, replace_dict)
+
     return count
 
 def do_tables_replace(fdocx, replace_dict):
+    count = 0
     if 0 == len(fdocx.tables):
         logger.info('no tables found')
-        return
+        return count
     cell_set = set()
     for i in range(len(fdocx.tables)):
         logger.info(f'First table:{len(fdocx.tables[i].rows)} row X {len(fdocx.tables[i].columns)} columns')
@@ -63,6 +65,8 @@ def do_tables_replace(fdocx, replace_dict):
                     for key, value in replace_dict.items():
                         if key in cell.text:
                             cell.text = cell.text.replace(key, value)
+                            count += 1
+    return count
 
 def do_re_replace(para, replace_dict):
     replace_count = 0
@@ -131,7 +135,7 @@ def do_replace(fdocx, replace_dict):
             if para_match_count != parag_replace_count:
                 parag_replace_count += do_re_replace(para, replace_dict)
             has_replace_count += parag_replace_count
-        do_tables_replace(fdocx, replace_dict)
+#        has_replace_count += do_tables_replace(fdocx, replace_dict)
     except Exception as e:
         logger.error("line:%d" % sys._getframe().f_lineno + " repr(e):", repr(e))
         return
@@ -142,16 +146,19 @@ def do_docx(old_path, new_path, replace_dict):
     count_logical = 0
     count_real = 0
     fdocx = Document(old_path)
-    count_logical = check_all_match_count(fdocx, replace_dict)
-    if 0 < count_logical:
+    count_logical_para = check_all_match_count(fdocx, replace_dict)
+    count_logical_table = do_tables_replace(fdocx, replace_dict)
+    count_logical_all = count_logical_para + count_logical_table
+    if 0 < count_logical_para:
         count_real = do_replace(fdocx, replace_dict)
-    if count_logical == count_real:
-        if 0 < count_logical:
-            log_to_ui(True, "info", "--->文件中检查到匹配项%d个，全部替换！"%count_logical)
+    count_real += count_logical_table
+    if count_logical_all == count_real:
+        if 0 < count_logical_all:
+            log_to_ui(True, "info", "--->文件中检查到匹配项%d个，全部替换！"%count_logical_all)
         else:
             log_to_ui(True, "info", "--->文件中检查到匹配项%d个，跳过！"%count_logical)
     else:
-        log_to_ui(True, "error", "--->文件中检查到匹配项%d"%count_logical + "个，但实际替换%d个"%count_real)
+        log_to_ui(True, "error", "--->文件中检查到匹配项%d"%count_logical_all + "个，但实际替换%d个"%count_real)
         logger.info("--->Warnning! " + old_path + " has checked same words:%d" % count_logical + " but replaced count:%d" % count_real)
 
     fdocx.save(new_path)
